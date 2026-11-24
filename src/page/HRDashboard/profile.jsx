@@ -7,12 +7,14 @@ import {
     CalendarDays,
     IdCard,
     UserRound,
+    Cake,
 } from "lucide-react";
 
 const hrProfile = {
     name: "Suriya Afrin",
     employeeId: "HR-001",
-    gender: "Female", // Male or Female
+    gender: "Female",
+    age: 25,
     designation: "HR Manager",
     department: "Human Resources",
     email: "suriya@company.com",
@@ -74,16 +76,12 @@ const HRProfile = () => {
 
                 {/* Email */}
                 <div className="flex items-center gap-3">
-
                     <div className="rounded-xl bg-blue-50 p-3">
                         <Mail size={18} className="text-blue-600" />
                     </div>
 
                     <div className="min-w-0">
-                        <p className="text-xs text-gray-500">
-                            Email
-                        </p>
-
+                        <p className="text-xs text-gray-500">Email</p>
                         <p className="truncate text-sm font-medium text-gray-700">
                             {hrProfile.email}
                         </p>
@@ -92,16 +90,12 @@ const HRProfile = () => {
 
                 {/* Phone */}
                 <div className="flex items-center gap-3">
-
                     <div className="rounded-xl bg-green-50 p-3">
                         <Phone size={18} className="text-green-600" />
                     </div>
 
                     <div>
-                        <p className="text-xs text-gray-500">
-                            Phone
-                        </p>
-
+                        <p className="text-xs text-gray-500">Phone</p>
                         <p className="text-sm font-medium text-gray-700">
                             {hrProfile.phone}
                         </p>
@@ -110,16 +104,12 @@ const HRProfile = () => {
 
                 {/* Department */}
                 <div className="flex items-center gap-3">
-
                     <div className="rounded-xl bg-purple-50 p-3">
                         <Building2 size={18} className="text-purple-600" />
                     </div>
 
                     <div>
-                        <p className="text-xs text-gray-500">
-                            Department
-                        </p>
-
+                        <p className="text-xs text-gray-500">Department</p>
                         <p className="text-sm font-medium text-gray-700">
                             {hrProfile.department}
                         </p>
@@ -128,16 +118,12 @@ const HRProfile = () => {
 
                 {/* Joining Date */}
                 <div className="flex items-center gap-3">
-
                     <div className="rounded-xl bg-orange-50 p-3">
                         <CalendarDays size={18} className="text-orange-600" />
                     </div>
 
                     <div>
-                        <p className="text-xs text-gray-500">
-                            Joining Date
-                        </p>
-
+                        <p className="text-xs text-gray-500">Joining Date</p>
                         <p className="text-sm font-medium text-gray-700">
                             {hrProfile.joiningDate}
                         </p>
@@ -146,34 +132,40 @@ const HRProfile = () => {
 
                 {/* Gender */}
                 <div className="flex items-center gap-3">
-
                     <div className="rounded-xl bg-pink-50 p-3">
                         <UserRound size={18} className="text-pink-600" />
                     </div>
 
                     <div>
-                        <p className="text-xs text-gray-500">
-                            Gender
-                        </p>
-
+                        <p className="text-xs text-gray-500">Gender</p>
                         <p className="text-sm font-medium text-gray-700">
                             {hrProfile.gender}
                         </p>
                     </div>
                 </div>
 
+                {/* Age */}
+                <div className="flex items-center gap-3">
+                    <div className="rounded-xl bg-rose-50 p-3">
+                        <Cake size={18} className="text-rose-600" />
+                    </div>
+
+                    <div>
+                        <p className="text-xs text-gray-500">Age</p>
+                        <p className="text-sm font-medium text-gray-700">
+                            {hrProfile.age} Years
+                        </p>
+                    </div>
+                </div>
+
                 {/* Employee ID */}
                 <div className="flex items-center gap-3">
-
                     <div className="rounded-xl bg-indigo-50 p-3">
                         <IdCard size={18} className="text-indigo-600" />
                     </div>
 
                     <div>
-                        <p className="text-xs text-gray-500">
-                            Employee ID
-                        </p>
-
+                        <p className="text-xs text-gray-500">Employee ID</p>
                         <p className="text-sm font-medium text-gray-700">
                             {hrProfile.employeeId}
                         </p>
