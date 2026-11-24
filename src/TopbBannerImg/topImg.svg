@@ -1,0 +1,149 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" fill="none">
+
+    <rect width="800" height="500" rx="32" fill="#EAF3FF"/>
+
+    <g transform="translate(90 35) scale(1.1)" opacity="0.45">
+
+        <!-- Main White Card -->
+        <rect x="76" y="48" width="412" height="310" rx="24" fill="#FFFFFF"/>
+
+        <!-- Calendar Header -->
+        <rect x="110" y="82" width="344" height="54" rx="12" fill="#DBEAFE"/>
+        <text x="282" y="116" text-anchor="middle"
+              font-family="Arial, sans-serif" font-size="22"
+              font-weight="700" fill="#1E3A8A">
+            Leave Planner
+        </text>
+
+        <!-- Calendar -->
+        <rect x="110" y="155" width="344" height="166" rx="14" fill="#F8FAFC"/>
+
+        <!-- Calendar Days -->
+        <g font-family="Arial, sans-serif" font-size="16" fill="#64748B">
+            <text x="137" y="185">Mon</text>
+            <text x="184" y="185">Tue</text>
+            <text x="231" y="185">Wed</text>
+            <text x="278" y="185">Thu</text>
+            <text x="325" y="185">Fri</text>
+            <text x="372" y="185">Sat</text>
+            <text x="419" y="185">Sun</text>
+        </g>
+
+        <!-- Calendar Date Grid -->
+        <g font-family="Arial, sans-serif" font-size="15" text-anchor="middle">
+            <g fill="#64748B">
+                <text x="137" y="218">1</text>
+                <text x="184" y="218">2</text>
+                <text x="231" y="218">3</text>
+                <text x="278" y="218">4</text>
+                <text x="325" y="218">5</text>
+                <text x="372" y="218">6</text>
+                <text x="419" y="218">7</text>
+
+                <text x="137" y="250">8</text>
+                <text x="184" y="250">9</text>
+                <text x="231" y="250">10</text>
+                <text x="278" y="250">11</text>
+                <text x="325" y="250">12</text>
+                <text x="372" y="250">13</text>
+                <text x="419" y="250">14</text>
+
+                <text x="137" y="282">15</text>
+                <text x="184" y="282">16</text>
+                <text x="231" y="282">17</text>
+                <text x="278" y="282">18</text>
+                <text x="325" y="282">19</text>
+                <text x="372" y="282">20</text>
+                <text x="419" y="282">21</text>
+            </g>
+        </g>
+
+        <!-- Highlighted Leave Date -->
+        <circle cx="278" cy="245" r="19" fill="#2563EB"/>
+        <text x="278" y="250" text-anchor="middle"
+              font-family="Arial, sans-serif" font-size="15"
+              font-weight="bold" fill="#FFFFFF">11</text>
+
+        <!-- Plant -->
+        <g transform="translate(36 235)">
+            <rect x="0" y="68" width="64" height="44" rx="10" fill="#D97757"/>
+            <path d="M10 68 L54 68 L48 90 L16 90 Z" fill="#C46549"/>
+            <path d="M32 68 C32 38 16 18 12 10" stroke="#4F8D66" stroke-width="6" stroke-linecap="round"/>
+            <path d="M32 55 C55 48 60 28 50 18 C35 24 30 38 32 55Z" fill="#79B88B"/>
+            <path d="M25 42 C8 42 0 28 5 18 C22 18 30 30 25 42Z" fill="#91C99F"/>
+        </g>
+
+        <!-- Person -->
+        <g transform="translate(430 210)">
+            <!-- Hair -->
+            <path d="M38 18 C14 14 7 34 13 55 C4 76 12 95 32 103
+        L64 94 C82 74 82 42 62 24 Z" fill="#374151"/>
+
+            <!-- Face -->
+            <ellipse cx="43" cy="50" rx="27" ry="34" fill="#F4C7A1"/>
+
+            <!-- Hair Front -->
+            <path d="M16 42 C10 15 30 5 48 10 C68 10 77 25 70 40
+        C62 32 51 30 38 34 C29 39 24 43 16 42Z" fill="#374151"/>
+
+            <!-- Eyes -->
+            <circle cx="33" cy="51" r="2.5" fill="#374151"/>
+            <circle cx="53" cy="51" r="2.5" fill="#374151"/>
+
+            <!-- Smile -->
+            <path d="M34 64 Q44 73 54 64" stroke="#B76E55"
+                  stroke-width="3" fill="none" stroke-linecap="round"/>
+
+            <!-- Neck -->
+            <rect x="34" y="78" width="18" height="20" rx="6" fill="#F4C7A1"/>
+
+            <!-- Body -->
+            <path d="M14 96 C8 104 0 122 0 146 L92 146
+        C92 122 80 104 66 96 L52 91 L34 91 Z" fill="#5B8DEF"/>
+
+            <!-- Arms -->
+            <path d="M10 110 C-8 124 -8 140 8 148"
+                  stroke="#F4C7A1" stroke-width="15" stroke-linecap="round"/>
+            <path d="M75 110 C90 121 100 136 87 146"
+                  stroke="#F4C7A1" stroke-width="15" stroke-linecap="round"/>
+
+            <!-- Laptop -->
+            <rect x="14" y="127" width="70" height="42" rx="5" fill="#CBD5E1"/>
+            <rect x="20" y="132" width="58" height="32" rx="3" fill="#64748B"/>
+            <path d="M8 169 L90 169 L100 176 L0 176 Z" fill="#94A3B8"/>
+        </g>
+
+        <!-- Approved Badge -->
+        <g transform="translate(375 70)">
+            <rect width="130" height="60" rx="16" fill="#DCFCE7"/>
+            <circle cx="30" cy="30" r="17" fill="#22C55E"/>
+            <path d="M22 30 L28 36 L39 24" stroke="#FFFFFF"
+                  stroke-width="4" fill="none" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+            <text x="55" y="35" font-family="Arial, sans-serif"
+                  font-size="16" font-weight="700" fill="#166534">
+                Approved
+            </text>
+        </g>
+
+        <!-- Decorative Sparkles -->
+        <g fill="#93C5FD">
+            <path d="M520 65 L526 80 L541 86 L526 92 L520 107
+        L514 92 L499 86 L514 80 Z"/>
+            <circle cx="45" cy="115" r="7"/>
+            <circle cx="530" cy="215" r="6"/>
+        </g>
+
+        <!-- Small Floating Notification -->
+        <g transform="translate(355 300)">
+            <rect width="135" height="52" rx="13" fill="#EFF6FF"/>
+            <circle cx="20" cy="26" r="8" fill="#3B82F6"/>
+            <text x="38" y="30" font-family="Arial, sans-serif"
+                  font-size="13" font-weight="600" fill="#1E40AF">
+                Leave updated
+            </text>
+        </g>
+
+    </g>
+</svg>
