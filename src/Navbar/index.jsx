@@ -40,13 +40,18 @@ const Index = () => {
     // Page titles
     const pageTitle = {
         "/": "Home",
+
         "/hr/dashboard": "HR Dashboard",
+        "/hr/leave-history": "Leave History",
+        "/hr/explore-leave": "Explore Leave",
+
         "/employee/dashboard": "Employee Dashboard",
         "/employee/employees": "Employees",
-        "/hr/leave-history": "Leave History",
         "/employee/leave-history": "Leave History",
         "/employee/explore-leave": "Explore Leave",
+
         "/leave-application": "Leave Application",
+
         "/hr-login": "HR Login",
         "/employee-login": "Employee Login"
     };
@@ -71,7 +76,9 @@ const Index = () => {
         },
         {
             name: "Explore Leave",
-            path: "/employee/explore-leave"
+            path: isHRDashboard
+                ? "/hr/explore-leave"
+                : "/employee/explore-leave"
         }
     ];
 
@@ -173,6 +180,7 @@ const Index = () => {
                             {isDashboardOpen && (
                                 <div className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-2 z-50">
 
+                                    {/* HR Dashboard */}
                                     <button
                                         onClick={() =>
                                             handleDashboardChange(
@@ -189,6 +197,7 @@ const Index = () => {
                                         <span>HR Dashboard</span>
                                     </button>
 
+                                    {/* Employee Dashboard */}
                                     <button
                                         onClick={() =>
                                             handleDashboardChange(
@@ -204,6 +213,7 @@ const Index = () => {
                                         <Users size={18} />
                                         <span>Employee Dashboard</span>
                                     </button>
+
                                 </div>
                             )}
                         </div>
@@ -216,6 +226,7 @@ const Index = () => {
 
                     {/* Right Header Icons */}
                     <div className="flex items-center gap-2">
+
                         <button className="p-2 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-100">
                             <Moon size={18} />
                         </button>
@@ -240,6 +251,7 @@ const Index = () => {
                             <UserRound size={18} />
                             <span>Login</span>
                         </button>
+
                     </div>
                 </header>
 
@@ -247,6 +259,7 @@ const Index = () => {
                 <main className="w-full">
                     <Outlet />
                 </main>
+
             </div>
         </div>
     );

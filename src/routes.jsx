@@ -10,6 +10,7 @@ import LeaveApplication from "./page/leaveForm/leaveForm.jsx";
 import Employee from "./page/Employees/employee.jsx";
 import ExoloreLeave from "./page/ExploreLeave/exoloreLeave.jsx";
 import LeaveHistory from "./page/LeaveHistory/leaveHistory.jsx";
+import AddLeavePolicy from "./page/ExploreLeave/addLeave.jsx";
 
 export default function AppRoutes() {
     return (
@@ -30,6 +31,16 @@ export default function AppRoutes() {
                     path="/hr/leave-history"
                     element={<LeaveHistory role="hr" />}
                 />
+                <Route path="/hr/explore-leave" element={<ExoloreLeave role="hr" />} />
+                <Route
+                    path="/hr/add-leave-policy"
+                    element={<AddLeavePolicy />}
+                />
+
+                <Route
+                    path="/hr/edit-leave-policy/:id"
+                    element={<AddLeavePolicy />}
+                />
 
                 {/* Employee pages */}
                 <Route path="/employee/dashboard" element={<EmployeeDash />} />
@@ -38,7 +49,7 @@ export default function AppRoutes() {
                     path="/employee/leave-history"
                     element={<LeaveHistory role="employee" />}
                 />
-                <Route path="/employee/explore-leave" element={<ExoloreLeave />} />
+                <Route path="/employee/explore-leave" element={<ExoloreLeave role="employee" />} />
 
             </Route>
 
@@ -59,3 +70,5 @@ export default function AppRoutes() {
         </Routes>
     );
 }
+
+

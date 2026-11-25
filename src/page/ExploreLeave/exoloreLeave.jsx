@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import {
     CalendarDays,
     Coffee,
@@ -11,13 +12,13 @@ import {
     BriefcaseBusiness,
     Wallet,
     ChevronRight,
-    ChevronLeft,
     Clock,
     CheckCircle2,
     AlertCircle,
     FileText,
     X,
     Info,
+    Plus,
 } from "lucide-react";
 
 // All Leave Policy Data
@@ -327,14 +328,14 @@ const colorStyles = {
     },
 };
 
-const ExoloreLeave = () => {
-    const [selectedLeave, setSelectedLeave] = useState(null);
-    const [search, setSearch] = useState("");
-    const [filter, setFilter] = useState("All");
 
-    // Employee information
-    // Later connect this with logged-in employee data
-    const employee = {
+
+
+const ExoloreLeave = ({ role = "employee" }) => {
+    const isHR = role === "hr";
+    const navigate = useNavigate();
+
+    const employeeProfile = {
         name: "Rahim Uddin",
         gender: "Male",
         joiningDate: "2024-01-15",
@@ -342,57 +343,114 @@ const ExoloreLeave = () => {
         isManagementOrStaff: true,
     };
 
-    const completedMonths = Math.max(
-        0,
-        (new Date().getFullYear() - new Date(employee.joiningDate).getFullYear()) * 12 +
-        new Date().getMonth() - new Date(employee.joiningDate).getMonth() -
-        (new Date().getDate() < new Date(employee.joiningDate).getDate() ? 1 : 0)
-    );
+    const hrProfile = {
+        name: "HR Manager",
+        gender: "Female",
+        joiningDate: "2023-06-01",
+        employmentType: "Permanent",
+        isManagementOrStaff: true,
+    };
 
-    // Employee eligibility calculation
-    const getEligibility = (leave) => {
-        // Annual Leave: minimum 12 months continuous service
-        if (leave.id === 1) {
-            return completedMonths >= 12
-                ? "Eligible"
-                : "Not Eligible Yet";
-        }
+    const employee = isHR ? hrProfile : employeeProfile;
 
-        // Maternity Leave: gender and service eligibility
-        if (leave.id === 4) {
-            if (employee.gender !== "Female") {
-                return "Not Applicable";
+    // Icon mapping for saved policies
+    const iconMap = {
+        AL: CalendarDays,
+        CL: Coffee,
+        SL: HeartPulse,
+        ML: Baby,
+        QL: ShieldCheck,
+        STL: GraduationCap,
+        DL: Accessibility,
+        EL: BriefcaseBusiness,
+        LE: Wallet,
+    };
+
+    // Load policies from localStorage
+    const [policies, setPolicies] = useState(() => {
+        try {
+            const savedPolicies = localStorage.getItem("selopiaLeavePolicies");
+
+            if (savedPolicies) {
+                return JSON.parse(savedPolicies).map((leave) => ({
+                    ...leave,
+                    icon: iconMap[leave.shortName] || CalendarDays,
+                }));
             }
 
-            return completedMonths >= 12
-                ? "Eligible"
-                : "Not Eligible Yet";
+            return leavePolicies;
+        } catch {
+            return leavePolicies;
+        }
+    });
+
+    // Save policies to localStorage
+    React.useEffect(() => {
+        const savedData = policies.map(({ icon, ...leave }) => leave);
+        localStorage.setItem(
+            "selopiaLeavePolicies",
+            JSON.stringify(savedData)
+        );
+    }, [policies]);
+
+    const [selectedLeave, setSelectedLeave] = useState(null);
+    const [search, setSearch] = useState("");
+    const [filter, setFilter] = useState("All");
+
+    const calculateCompletedMonths = (joiningDate) => {
+        const joining = new Date(joiningDate);
+        const today = new Date();
+
+        let months =
+            (today.getFullYear() - joining.getFullYear()) * 12 +
+            today.getMonth() - joining.getMonth();
+
+        if (today.getDate() < joining.getDate()) months--;
+
+        return Math.max(0, months);
+    };
+
+    const completedMonths = calculateCompletedMonths(employee.joiningDate);
+
+    const getEligibility = (leave) => {
+        if (leave.shortName === "AL" || leave.id === 1) {
+            return completedMonths >= 12 ? "Eligible" : "Not Eligible Yet";
         }
 
-        // Leave Encashment: permanent Management/Staff after 1 year
-        if (leave.id === 9) {
-            return completedMonths >= 12 &&
-            employee.employmentType === "Permanent" &&
-            employee.isManagementOrStaff
-                ? "Eligible"
-                : "Not Eligible Yet";
+        if (leave.shortName === "ML" || leave.id === 4) {
+            if (employee.gender !== "Female") return "Not Applicable";
+            return completedMonths >= 12 ? "Eligible" : "Not Eligible Yet";
         }
 
-        // Management approval is required for these leave types
-        if ([5, 6, 7].includes(leave.id)) {
+        if (leave.shortName === "LE" || leave.id === 9) {
+            return (
+                completedMonths >= 12 &&
+                employee.employmentType === "Permanent" &&
+                employee.isManagementOrStaff
+            ) ? "Eligible" : "Not Eligible Yet";
+        }
+
+        if (leave.status === "Management Approval") {
             return "Approval Required";
         }
 
-        if (leave.id === 8) {
+        if (leave.status === "Conditional") {
             return "Conditional";
         }
 
         return "Eligible";
     };
 
-    const filteredPolicies = leavePolicies.filter((leave) => {
-        const matchesSearch = leave.name.toLowerCase().includes(search.toLowerCase());
+    const getStatusStyle = (status) => {
+        if (status === "Eligible") return "bg-emerald-50 text-emerald-700";
+        if (status === "Approval Required") return "bg-amber-50 text-amber-700";
+        if (status === "Conditional") return "bg-blue-50 text-blue-700";
+        if (status === "Not Applicable") return "bg-slate-100 text-slate-500";
+        return "bg-rose-50 text-rose-700";
+    };
 
+    const filteredPolicies = policies.filter((leave) => {
+        const matchesSearch = leave.name.toLowerCase().includes(search.toLowerCase());
         const status = getEligibility(leave);
 
         const matchesFilter =
@@ -404,22 +462,31 @@ const ExoloreLeave = () => {
         return matchesSearch && matchesFilter;
     });
 
-    const eligibleCount = leavePolicies.filter(
+    const eligibleCount = policies.filter(
         (leave) => getEligibility(leave) === "Eligible"
     ).length;
 
-    const getStatusStyle = (status) => {
-        if (status === "Eligible") return "bg-emerald-50 text-emerald-700";
-        if (status === "Approval Required") return "bg-amber-50 text-amber-700";
-        if (status === "Conditional") return "bg-blue-50 text-blue-700";
-        if (status === "Not Applicable") return "bg-slate-100 text-slate-500";
-        return "bg-rose-50 text-rose-700";
+    const handleAddLeave = () => {
+        navigate("/hr/add-leave-policy");
+    };
+
+    const handleEditLeave = (leave) => {
+        navigate(`/hr/edit-leave-policy/${leave.id}`);
+    };
+
+    const handleDeleteLeave = (id) => {
+        if (!window.confirm("Are you sure you want to delete this leave policy?")) {
+            return;
+        }
+
+        setPolicies((prev) => prev.filter((leave) => leave.id !== id));
+        setSelectedLeave(null);
     };
 
     return (
         <div className="min-h-screen bg-slate-50 p-4 md:p-6 lg:p-8">
 
-            {/* Page Header */}
+            {/* PAGE HEADER */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
                 <div>
                     <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
@@ -433,37 +500,45 @@ const ExoloreLeave = () => {
                     </h1>
 
                     <p className="text-slate-500 mt-2 text-sm">
-                        Understand your leave benefits, eligibility and company policies.
+                        Understand leave benefits, eligibility and company policies.
                     </p>
                 </div>
+
+                {isHR && (
+                    <button
+                        onClick={handleAddLeave}
+                        className="flex items-center justify-center gap-2 px-5 py-3 bg-[#193B70] text-white rounded-xl text-sm font-semibold hover:bg-[#244D87] transition shadow-sm"
+                    >
+                        <Plus size={19} />
+                        Add Leave
+                    </button>
+                )}
             </div>
 
-            {/* Eligibility Overview */}
+            {/* OVERVIEW */}
             <div className="bg-blue-900 rounded-2xl p-5 md:p-7 text-white mb-7 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div>
                         <p className="text-blue-100 text-sm font-medium mb-2">
-                            Your Leave Eligibility
+                            {isHR ? "Company Leave Policies" : `${employee.name}'s Leave Eligibility`}
                         </p>
 
                         <h2 className="text-3xl font-bold">
-                            {eligibleCount} / 9
+                            {isHR ? policies.length : `${eligibleCount} / ${policies.length}`}
                         </h2>
 
                         <p className="text-blue-100 text-sm mt-2">
-                            Leave types currently eligible based on your employment information.
+                            {isHR
+                                ? "Total leave policies currently available in the system."
+                                : "Leave types currently eligible based on employment information."}
                         </p>
                     </div>
 
                     <div className="bg-white/10 rounded-xl p-4 min-w-[190px]">
-                        <p className="text-blue-100 text-xs mb-2">
-                            Your Service Duration
-                        </p>
-
+                        <p className="text-blue-100 text-xs mb-2">Service Duration</p>
                         <h3 className="text-2xl font-bold">
                             {Math.floor(completedMonths / 12)} Years
                         </h3>
-
                         <p className="text-blue-100 text-xs mt-1">
                             {completedMonths % 12} Months completed
                         </p>
@@ -471,18 +546,15 @@ const ExoloreLeave = () => {
                 </div>
             </div>
 
-            {/* Search and Filter */}
+            {/* SEARCH AND FILTER */}
             <div className="bg-white border border-slate-100 rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-3 md:items-center md:justify-between shadow-sm">
-
-                <div className="relative flex-1">
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search leave type..."
-                        className="w-full border border-slate-200 rounded-lg pl-4 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
-                    />
-                </div>
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search leave type..."
+                    className="flex-1 border border-slate-200 rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                />
 
                 <div className="flex flex-wrap gap-2">
                     {["All", "Eligible", "Approval Required", "Not Applicable"].map((item) => (
@@ -501,12 +573,10 @@ const ExoloreLeave = () => {
                 </div>
             </div>
 
-            {/* Leave Cards */}
+            {/* POLICY CARDS */}
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-lg font-bold text-slate-800">
-                        All Leave Types
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-800">All Leave Types</h2>
                     <p className="text-xs text-slate-500 mt-1">
                         Click on a card to explore full policy details.
                     </p>
@@ -519,15 +589,14 @@ const ExoloreLeave = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {filteredPolicies.map((leave) => {
-                    const Icon = leave.icon;
-                    const style = colorStyles[leave.color];
+                    const Icon = leave.icon || CalendarDays;
+                    const style = colorStyles[leave.color] || colorStyles.blue;
                     const status = getEligibility(leave);
 
                     return (
-                        <button
+                        <div
                             key={leave.id}
-                            onClick={() => setSelectedLeave(leave)}
-                            className="bg-white text-left rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                            className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300"
                         >
                             <div className="flex justify-between items-start mb-5">
                                 <div className={`w-12 h-12 rounded-xl ${style.bg} ${style.icon} flex items-center justify-center`}>
@@ -539,7 +608,7 @@ const ExoloreLeave = () => {
                                 </span>
                             </div>
 
-                            <h3 className="text-lg font-bold text-slate-800 mb-1 group-hover:text-blue-700 transition">
+                            <h3 className="text-lg font-bold text-slate-800 mb-1">
                                 {leave.name}
                             </h3>
 
@@ -549,12 +618,8 @@ const ExoloreLeave = () => {
 
                             <div className="flex items-center justify-between border-t border-slate-100 mt-4 pt-4">
                                 <div>
-                                    <p className="text-[10px] text-slate-400 mb-1">
-                                        ENTITLEMENT
-                                    </p>
-                                    <p className="text-sm font-bold text-slate-800">
-                                        {leave.days}
-                                    </p>
+                                    <p className="text-[10px] text-slate-400 mb-1">ENTITLEMENT</p>
+                                    <p className="text-sm font-bold text-slate-800">{leave.days}</p>
                                 </div>
 
                                 <span className={`text-[10px] font-bold px-2.5 py-2 rounded-lg ${getStatusStyle(status)}`}>
@@ -562,11 +627,36 @@ const ExoloreLeave = () => {
                                 </span>
                             </div>
 
-                            <div className="flex items-center justify-between mt-4 text-blue-700 text-xs font-semibold">
-                                View Policy Details
-                                <ChevronRight size={16} className="group-hover:translate-x-1 transition" />
+                            <div className="flex items-center justify-between mt-4 gap-2">
+                                <button
+                                    onClick={() => setSelectedLeave(leave)}
+                                    className="flex items-center gap-1 text-blue-700 text-xs font-semibold hover:text-blue-900"
+                                >
+                                    View Details
+                                    <ChevronRight size={16} />
+                                </button>
+
+                                {isHR && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleEditLeave(leave)}
+                                            className="flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100"
+                                        >
+                                            <FileText size={14} />
+                                            Edit
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDeleteLeave(leave.id)}
+                                            className="flex items-center gap-1 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-xs font-semibold hover:bg-rose-100"
+                                        >
+                                            <X size={14} />
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        </button>
+                        </div>
                     );
                 })}
             </div>
@@ -574,20 +664,18 @@ const ExoloreLeave = () => {
             {filteredPolicies.length === 0 && (
                 <div className="bg-white rounded-xl p-10 text-center">
                     <FileText className="mx-auto text-slate-300 mb-3" size={35} />
-                    <h3 className="font-semibold text-slate-700">
-                        No Leave Policy Found
-                    </h3>
+                    <h3 className="font-semibold text-slate-700">No Leave Policy Found</h3>
                     <p className="text-sm text-slate-400 mt-1">
                         Try searching with another leave type.
                     </p>
                 </div>
             )}
 
-            {/* Policy Details Modal */}
+            {/* POLICY DETAILS */}
             {selectedLeave && (() => {
                 const leave = selectedLeave;
-                const Icon = leave.icon;
-                const style = colorStyles[leave.color];
+                const Icon = leave.icon || CalendarDays;
+                const style = colorStyles[leave.color] || colorStyles.blue;
                 const status = getEligibility(leave);
 
                 return (
@@ -599,7 +687,6 @@ const ExoloreLeave = () => {
                             className="bg-white w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* Modal Header */}
                             <div className="sticky top-0 bg-white z-10 border-b border-slate-100 p-5 md:p-6">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-center gap-3">
@@ -608,9 +695,7 @@ const ExoloreLeave = () => {
                                         </div>
 
                                         <div>
-                                            <h2 className="text-xl font-bold text-slate-800">
-                                                {leave.name}
-                                            </h2>
+                                            <h2 className="text-xl font-bold text-slate-800">{leave.name}</h2>
                                             <p className="text-xs text-slate-500 mt-1">
                                                 Complete Leave Policy Details
                                             </p>
@@ -627,54 +712,41 @@ const ExoloreLeave = () => {
                             </div>
 
                             <div className="p-5 md:p-6 space-y-6">
-
-                                {/* Status and Entitlement */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="bg-slate-50 rounded-xl p-4">
-                                        <p className="text-xs text-slate-500 mb-2">
-                                            Leave Entitlement
-                                        </p>
-                                        <h3 className="text-2xl font-bold text-slate-800">
-                                            {leave.days}
-                                        </h3>
-                                        <p className="text-xs text-slate-500 mt-1">
-                                            {leave.category}
-                                        </p>
+                                        <p className="text-xs text-slate-500 mb-2">Leave Entitlement</p>
+                                        <h3 className="text-2xl font-bold text-slate-800">{leave.days}</h3>
+                                        <p className="text-xs text-slate-500 mt-1">{leave.category}</p>
                                     </div>
 
                                     <div className="bg-slate-50 rounded-xl p-4">
                                         <p className="text-xs text-slate-500 mb-2">
-                                            Your Eligibility
+                                            {employee.name}'s Eligibility
                                         </p>
                                         <span className={`inline-block text-sm font-bold px-3 py-2 rounded-lg ${getStatusStyle(status)}`}>
                                             {status}
                                         </span>
                                         <p className="text-xs text-slate-500 mt-2">
-                                            Based on current employee information
+                                            Based on current profile information
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Description */}
                                 <div>
                                     <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                                         <Info size={18} className="text-blue-600" />
                                         Description
                                     </h3>
-                                    <p className="text-sm text-slate-600 leading-7">
-                                        {leave.description}
-                                    </p>
+                                    <p className="text-sm text-slate-600 leading-7">{leave.description}</p>
                                 </div>
 
-                                {/* Eligibility */}
                                 <div>
                                     <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
                                         <CheckCircle2 size={18} className="text-emerald-600" />
                                         Eligibility Criteria
                                     </h3>
-
                                     <div className="space-y-2">
-                                        {leave.eligibility.map((item, index) => (
+                                        {(leave.eligibility || []).map((item, index) => (
                                             <div key={index} className="flex gap-3 text-sm text-slate-600">
                                                 <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
                                                 <p>{item}</p>
@@ -683,15 +755,13 @@ const ExoloreLeave = () => {
                                     </div>
                                 </div>
 
-                                {/* Entitlement */}
                                 <div>
                                     <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
                                         <CalendarDays size={18} className="text-blue-600" />
                                         Entitlement
                                     </h3>
-
                                     <div className="space-y-2">
-                                        {leave.entitlement.map((item, index) => (
+                                        {(leave.entitlement || []).map((item, index) => (
                                             <div key={index} className="flex gap-3 text-sm text-slate-600">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
                                                 <p>{item}</p>
@@ -700,16 +770,13 @@ const ExoloreLeave = () => {
                                     </div>
                                 </div>
 
-                                {/* Approval and Documents */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="border border-slate-100 rounded-xl p-4">
                                         <div className="flex items-center gap-2 text-slate-500 mb-2">
                                             <Clock size={17} />
                                             <span className="text-xs font-semibold">APPROVAL AUTHORITY</span>
                                         </div>
-                                        <p className="text-sm font-bold text-slate-800">
-                                            {leave.approval}
-                                        </p>
+                                        <p className="text-sm font-bold text-slate-800">{leave.approval}</p>
                                     </div>
 
                                     <div className="border border-slate-100 rounded-xl p-4">
@@ -717,21 +784,17 @@ const ExoloreLeave = () => {
                                             <FileText size={17} />
                                             <span className="text-xs font-semibold">REQUIRED DOCUMENTS</span>
                                         </div>
-                                        <p className="text-sm font-bold text-slate-800">
-                                            {leave.documents}
-                                        </p>
+                                        <p className="text-sm font-bold text-slate-800">{leave.documents}</p>
                                     </div>
                                 </div>
 
-                                {/* Important Rules */}
                                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
                                     <h3 className="font-bold text-amber-800 mb-3 flex items-center gap-2">
                                         <AlertCircle size={18} />
                                         Important Rules
                                     </h3>
-
                                     <div className="space-y-2">
-                                        {leave.rules.map((item, index) => (
+                                        {(leave.rules || []).map((item, index) => (
                                             <div key={index} className="flex gap-2 text-sm text-amber-900">
                                                 <span className="font-bold">{index + 1}.</span>
                                                 <p>{item}</p>
@@ -740,7 +803,6 @@ const ExoloreLeave = () => {
                                     </div>
                                 </div>
 
-                                {/* Modal Footer */}
                                 <div className="flex justify-end pt-2">
                                     <button
                                         onClick={() => setSelectedLeave(null)}
@@ -754,9 +816,11 @@ const ExoloreLeave = () => {
                     </div>
                 );
             })()}
-
         </div>
     );
 };
 
 export default ExoloreLeave;
+
+
+
