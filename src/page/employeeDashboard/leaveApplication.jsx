@@ -1,5 +1,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
+import { getHolidayForDate } from "../../Data/holidays.js";
 import {
     Send,
     CheckCircle2,
@@ -68,6 +69,43 @@ const countDays = (start, end) => {
     const diff = Math.round((e - s) / 86400000) + 1;
 
     return diff > 0 ? String(diff) : "";
+};
+
+// ==========================================
+// CHECK PUBLIC HOLIDAYS IN SELECTED RANGE
+// ==========================================
+
+const getPublicHolidaysInRange = (start, end) => {
+    if (!start || !end || end < start) return [];
+
+    const holidaysFound = [];
+    const current = new Date(`${start}T00:00:00`);
+    const last = new Date(`${end}T00:00:00`);
+
+    while (current <= last) {
+        const holiday = getHolidayForDate(
+            current.getFullYear(),
+            current.getMonth(),
+            current.getDate()
+        );
+
+        if (holiday) {
+            const date = [
+                current.getFullYear(),
+                String(current.getMonth() + 1).padStart(2, "0"),
+                String(current.getDate()).padStart(2, "0"),
+            ].join("-");
+
+            holidaysFound.push({
+                date,
+                name: holiday.name,
+            });
+        }
+
+        current.setDate(current.getDate() + 1);
+    }
+
+    return holidaysFound;
 };
 
 // ==========================================
@@ -381,6 +419,37 @@ const LeaveApplication = ({
         ) {
             e.endDate =
                 "End date cannot be before the start date.";
+        }
+
+        // Public holiday validation:
+        // A leave request cannot include any public holiday.
+        if (
+            form.startDate &&
+            form.endDate &&
+            form.endDate >= form.startDate
+        ) {
+            const publicHolidays = getPublicHolidaysInRange(
+                form.startDate,
+                form.endDate
+            );
+
+            if (publicHolidays.length > 0) {
+                const holidayNames = publicHolidays
+                    .map((holiday) => `${formatDate(holiday.date)} - ${holiday.name}`)
+                    .join(", ");
+
+                const startDateIsHoliday = publicHolidays.some(
+                    (holiday) => holiday.date === form.startDate
+                );
+
+                const message = `Public holidays cannot be included in a leave request: ${holidayNames}. Please choose different dates.`;
+
+                if (startDateIsHoliday) {
+                    e.startDate = message;
+                } else {
+                    e.endDate = message;
+                }
+            }
         }
 
         // Number of days

@@ -1,11 +1,18 @@
+
 import React, { useState } from "react";
 import {
     CalendarDays,
     Clock,
     ArrowUpRight,
+    CheckCircle2,
+    X,
 } from "lucide-react";
+
 import LeaveApplication from "../employeeDashboard/leaveApplication.jsx";
 
+// ==========================================
+// LEAVE DATA
+// ==========================================
 
 const leaveData = [
     {
@@ -109,7 +116,10 @@ const leaveData = [
     },
 ];
 
-// Leave names exactly as they appear in the application form's dropdown
+// ==========================================
+// FORM LEAVE NAMES
+// ==========================================
+
 const FORM_LEAVE_NAMES = {
     AL: "Annual Leave (AL)",
     CL: "Casual Leave (CL)",
@@ -122,44 +132,93 @@ const FORM_LEAVE_NAMES = {
     UL: "Untold Leave (UL)",
 };
 
-// Logged-in HR employee
+// ==========================================
+// HR PROFILE
+// ==========================================
+
 const hrProfile = {
     name: "Suriya Afrin",
     employeeId: "HR-001",
     department: "Human Resources",
+    email: "suriya@example.com",
+    joiningDate: "2024-01-15",
+    gender: "Female",
 };
 
-const HRMyLeaveBalance = () => {
-    // Leave type the user clicked (null = form closed)
-    const [selectedLeave, setSelectedLeave] = useState(null);
+// ==========================================
+// HR MY LEAVE BALANCE
+// ==========================================
 
-    // Leave click করলে application form এই page এর উপরেই open হবে
+const HRMyLeaveBalance = () => {
+    const [selectedLeave, setSelectedLeave] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    // ======================================
+    // OPEN FORM FOR SELECTED LEAVE TYPE
+    // ======================================
+
     const handleLeaveClick = (leave) => {
         const isUntold = leave.shortName === "UL";
 
+        const remainingDays = Math.max(
+            0,
+            leave.proposed - leave.used
+        );
+
         setSelectedLeave({
-            leaveType: FORM_LEAVE_NAMES[leave.shortName] || leave.name,
-            remainingDays: leave.proposed - leave.used,
+            leaveType:
+                FORM_LEAVE_NAMES[leave.shortName] || leave.name,
+            remainingDays: isUntold ? null : remainingDays,
             isUntoldLeave: isUntold,
+            isExtendedUnpaidLeave: false,
         });
     };
 
-    // Header arrow: open the form without a pre-selected leave type
+    // ======================================
+    // OPEN BLANK LEAVE APPLICATION FORM
+    // ======================================
+
     const handleOpenBlankForm = () => {
         setSelectedLeave({
             leaveType: "",
             remainingDays: null,
             isUntoldLeave: false,
+            isExtendedUnpaidLeave: false,
         });
     };
 
-    // Called when the form is submitted
+    // ======================================
+    // SUBMIT LEAVE APPLICATION
+    // ======================================
+
     const handleLeaveSubmit = (data) => {
-        // TODO: send `data` to your backend here
-        console.log("Leave request submitted:", data);
+        const newLeaveApplication = {
+            ...data,
+            employeeName: hrProfile.name,
+            employeeId: hrProfile.employeeId,
+            department: hrProfile.department,
+            email: hrProfile.email,
+            joiningDate: hrProfile.joiningDate,
+            status: "pending",
+            appliedAt: new Date().toISOString(),
+        };
+
+        console.log(
+            "HR Leave Application Submitted:",
+            newLeaveApplication
+        );
+
+        // Close application form
+        setSelectedLeave(null);
+
+        // Show success modal
+        setShowSuccessModal(true);
     };
 
-    // Summary calculation
+    // ======================================
+    // SUMMARY CALCULATIONS
+    // ======================================
+
     const totalExisting = leaveData.reduce(
         (total, leave) => total + leave.existing,
         0
@@ -170,211 +229,324 @@ const HRMyLeaveBalance = () => {
         0
     );
 
-    const totalUsed = leaveData.reduce(
-        (total, leave) => total + leave.used,
+    const totalRemaining = leaveData.reduce(
+        (total, leave) =>
+            total + Math.max(0, leave.proposed - leave.used),
         0
     );
 
-    const totalRemaining = leaveData.reduce(
-        (total, leave) => total + (leave.proposed - leave.used),
-        0
-    );
+    // ======================================
+    // CLOSE SUCCESS MODAL
+    // ======================================
+
+    const handleCloseSuccessModal = () => {
+        setShowSuccessModal(false);
+    };
+
+    // ======================================
+    // JSX
+    // ======================================
 
     return (
-        <div className="w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <>
+            {/* ======================================
+                MY LEAVE BALANCE CARD
+            ====================================== */}
 
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50">
-                        <CalendarDays
-                            size={18}
-                            className="text-indigo-600"
-                        />
+            <div className="w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+
+                {/* HEADER */}
+
+                <div className="flex items-center justify-between">
+
+                    <div className="flex items-center gap-2">
+
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50">
+                            <CalendarDays
+                                size={18}
+                                className="text-indigo-600"
+                            />
+                        </div>
+
+                        <div>
+                            <h2 className="text-sm font-semibold text-gray-800">
+                                My Leave
+                            </h2>
+
+                            <p className="text-[11px] text-gray-500">
+                                Leave entitlement overview
+                            </p>
+                        </div>
+
                     </div>
 
-                    <div>
-                        <h2 className="text-sm font-semibold text-gray-800">
-                            My Leave
-                        </h2>
+                    <button
+                        type="button"
+                        onClick={handleOpenBlankForm}
+                        className="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 hover:text-indigo-600"
+                        title="Apply for leave"
+                    >
+                        <ArrowUpRight size={16} />
+                    </button>
 
-                        <p className="text-[11px] text-gray-500">
-                            Leave entitlement overview
+                </div>
+
+                {/* SUMMARY */}
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+
+                    <div className="rounded-xl bg-gray-50 p-3">
+                        <p className="text-[10px] text-gray-500">
+                            Existing
                         </p>
+
+                        <h3 className="mt-1 text-xl font-bold text-gray-700">
+                            {totalExisting}
+                            <span className="ml-1 text-xs font-medium">
+                                days
+                            </span>
+                        </h3>
                     </div>
+
+                    <div className="rounded-xl bg-indigo-50 p-3">
+                        <p className="text-[10px] text-gray-500">
+                            Proposed
+                        </p>
+
+                        <h3 className="mt-1 text-xl font-bold text-indigo-600">
+                            {totalProposed}
+                            <span className="ml-1 text-xs font-medium">
+                                days
+                            </span>
+                        </h3>
+                    </div>
+
+                    <div className="rounded-xl bg-green-50 p-3">
+                        <p className="text-[10px] text-gray-500">
+                            Remaining
+                        </p>
+
+                        <h3 className="mt-1 text-xl font-bold text-green-600">
+                            {totalRemaining}
+                            <span className="ml-1 text-xs font-medium">
+                                days
+                            </span>
+                        </h3>
+                    </div>
+
                 </div>
 
-                {/* Open leave application */}
-                <button
-                    type="button"
-                    onClick={handleOpenBlankForm}
-                    className="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 hover:text-indigo-600"
-                    title="Apply for leave"
-                >
-                    <ArrowUpRight size={16} />
-                </button>
-            </div>
+                {/* LEAVE DETAILS */}
 
-            {/* Summary */}
-            <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="mt-4 space-y-4">
 
-                {/* Existing */}
-                <div className="rounded-xl bg-gray-50 p-3">
-                    <p className="text-[10px] text-gray-500">
-                        Existing
-                    </p>
+                    {leaveData.map((leave) => {
+                        const remaining = Math.max(
+                            0,
+                            leave.proposed - leave.used
+                        );
 
-                    <h3 className="mt-1 text-xl font-bold text-gray-700">
-                        {totalExisting}
-                        <span className="ml-1 text-xs font-medium">
-                            days
-                        </span>
-                    </h3>
-                </div>
+                        const percentage =
+                            leave.proposed > 0
+                                ? (leave.used / leave.proposed) * 100
+                                : 0;
 
-                {/* Proposed */}
-                <div className="rounded-xl bg-indigo-50 p-3">
-                    <p className="text-[10px] text-gray-500">
-                        Proposed
-                    </p>
+                        const isUntold = leave.shortName === "UL";
 
-                    <h3 className="mt-1 text-xl font-bold text-indigo-600">
-                        {totalProposed}
-                        <span className="ml-1 text-xs font-medium">
-                            days
-                        </span>
-                    </h3>
-                </div>
+                        return (
+                            <button
+                                key={leave.shortName}
+                                type="button"
+                                onClick={() => handleLeaveClick(leave)}
+                                className="block w-full cursor-pointer rounded-lg text-left transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                            >
+                                {/* LEAVE TITLE */}
 
-                {/* Remaining */}
-                <div className="rounded-xl bg-green-50 p-3">
-                    <p className="text-[10px] text-gray-500">
-                        Remaining
-                    </p>
+                                <div className="mb-1 flex items-center justify-between gap-2">
 
-                    <h3 className="mt-1 text-xl font-bold text-green-600">
-                        {totalRemaining}
-                        <span className="ml-1 text-xs font-medium">
-                            days
-                        </span>
-                    </h3>
-                </div>
-            </div>
+                                    <div className="flex min-w-0 items-center gap-2">
 
-            {/* Leave Details */}
-            <div className="mt-4 space-y-4">
+                                        <span
+                                            className={`h-2 w-2 shrink-0 rounded-full ${leave.color}`}
+                                        />
 
-                {leaveData.map((leave) => {
-                    const remaining = leave.proposed - leave.used;
+                                        <p className="truncate text-xs font-semibold text-gray-700">
+                                            {leave.name}
+                                        </p>
 
-                    const percentage = leave.proposed > 0
-                        ? (leave.used / leave.proposed) * 100
-                        : 0;
+                                        <span className="shrink-0 rounded-md bg-gray-100 px-1.5 py-0.5 text-[9px] text-gray-500">
+                                            {leave.shortName}
+                                        </span>
 
-                    const isUntold = leave.shortName === "UL";
+                                    </div>
 
-                    return (
-                        <button
-                            key={leave.shortName}
-                            type="button"
-                            onClick={() => handleLeaveClick(leave)}
-                            className="block w-full cursor-pointer rounded-lg text-left transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        >
+                                    <p className="shrink-0 text-xs font-semibold text-gray-800">
+                                        {remaining}
 
-                            {/* Leave Title */}
-                            <div className="mb-1 flex items-center justify-between gap-2">
-
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <span
-                                        className={`h-2 w-2 shrink-0 rounded-full ${leave.color}`}
-                                    />
-
-                                    <p className="truncate text-xs font-semibold text-gray-700">
-                                        {leave.name}
+                                        <span className="font-normal text-gray-400">
+                                            {" "}/ {leave.proposed} days
+                                        </span>
                                     </p>
 
-                                    <span className="shrink-0 rounded-md bg-gray-100 px-1.5 py-0.5 text-[9px] text-gray-500">
-                                        {leave.shortName}
-                                    </span>
                                 </div>
 
-                                <p className="shrink-0 text-xs font-semibold text-gray-800">
-                                    {remaining}
-                                    <span className="font-normal text-gray-400">
-                                        {" "} / {leave.proposed} days
-                                    </span>
-                                </p>
-                            </div>
+                                {/* PROGRESS BAR */}
 
-                            {/* Progress Bar */}
-                            <div
-                                className={`h-2 w-full overflow-hidden rounded-full ${leave.lightColor}`}
-                            >
                                 <div
-                                    className={`h-full rounded-full ${leave.color} transition-all duration-300`}
-                                    style={{ width: `${percentage}%` }}
-                                />
-                            </div>
+                                    className={`h-2 w-full overflow-hidden rounded-full ${leave.lightColor}`}
+                                >
+                                    <div
+                                        className={`h-full rounded-full ${leave.color} transition-all duration-300`}
+                                        style={{
+                                            width: `${percentage}%`,
+                                        }}
+                                    />
+                                </div>
 
-                            {/* Existing / Used / Remaining */}
-                            <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[10px] text-gray-500">
-                                <span>
-                                    Existing: {leave.existing}d
-                                </span>
+                                {/* EXISTING / USED / REMAINING */}
 
-                                <span>
-                                    Used: {leave.used}d
-                                </span>
+                                <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[10px] text-gray-500">
 
-                                <span className={leave.textColor}>
-                                    Remaining: {remaining}d
-                                </span>
-                            </div>
+                                    <span>
+                                        Existing: {leave.existing}d
+                                    </span>
 
-                            {/* Payment Policy */}
-                            <p className="mt-1 text-[10px] text-gray-400">
-                                Payment: {leave.payment}
-                            </p>
+                                    <span>
+                                        Used: {leave.used}d
+                                    </span>
 
-                            {/* Untold Leave note */}
-                            {isUntold && (
-                                <p className="mt-1 text-[10px] font-medium text-gray-500">
-                                    Click to report an absence and provide a reason
+                                    <span className={leave.textColor}>
+                                        Remaining: {remaining}d
+                                    </span>
+
+                                </div>
+
+                                {/* PAYMENT POLICY */}
+
+                                <p className="mt-1 text-[10px] text-gray-400">
+                                    Payment: {leave.payment}
                                 </p>
-                            )}
 
-                        </button>
-                    );
-                })}
+                                {isUntold && (
+                                    <p className="mt-1 text-[10px] font-medium text-gray-500">
+                                        Click to report an absence and provide a reason
+                                    </p>
+                                )}
+
+                            </button>
+                        );
+                    })}
+
+                </div>
+
+                {/* FOOTER */}
+
+                <div className="mt-4 flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
+
+                    <Clock
+                        size={15}
+                        className="shrink-0 text-gray-400"
+                    />
+
+                    <p className="text-[11px] text-gray-500">
+                        Leave balance based on proposed leave policy
+                    </p>
+
+                </div>
+
             </div>
 
-            {/* Footer */}
-            <div className="mt-4 flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
-                <Clock
-                    size={15}
-                    className="shrink-0 text-gray-400"
-                />
+            {/* ======================================
+                LEAVE APPLICATION FORM
+            ====================================== */}
 
-                <p className="text-[11px] text-gray-500">
-                    Leave balance based on proposed leave policy
-                </p>
-            </div>
-
-            {/* LEAVE APPLICATION FORM (opens over this page) */}
             {selectedLeave && (
                 <LeaveApplication
                     leaveType={selectedLeave.leaveType}
                     remainingDays={selectedLeave.remainingDays}
                     isUntoldLeave={selectedLeave.isUntoldLeave}
+                    isExtendedUnpaidLeave={selectedLeave.isExtendedUnpaidLeave}
                     employeeName={hrProfile.name}
                     employeeId={hrProfile.employeeId}
                     department={hrProfile.department}
+                    email={hrProfile.email}
+                    joiningDate={hrProfile.joiningDate}
+                    gender={hrProfile.gender}
                     onSubmit={handleLeaveSubmit}
                     onClose={() => setSelectedLeave(null)}
                 />
             )}
 
-        </div>
+            {/* ======================================
+                SUCCESS MODAL
+            ====================================== */}
+
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+
+                    <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+
+                        {/* CLOSE BUTTON */}
+
+                        <button
+                            type="button"
+                            onClick={handleCloseSuccessModal}
+                            className="absolute right-4 top-4 rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                            aria-label="Close success modal"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        {/* SUCCESS ICON */}
+
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+
+                            <CheckCircle2
+                                size={36}
+                                className="text-green-600"
+                            />
+
+                        </div>
+
+                        {/* SUCCESS MESSAGE */}
+
+                        <h2 className="text-xl font-bold text-gray-800">
+                            Application Submitted!
+                        </h2>
+
+                        <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                            Your leave application has been submitted successfully.
+                            Your application is now waiting for approval.
+                        </p>
+
+                        {/* STATUS */}
+
+                        <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2">
+
+                            <span className="h-2 w-2 rounded-full bg-amber-500" />
+
+                            <span className="text-xs font-semibold text-amber-700">
+                                Pending Approval
+                            </span>
+
+                        </div>
+
+                        {/* OK BUTTON */}
+
+                        <button
+                            type="button"
+                            onClick={handleCloseSuccessModal}
+                            className="mt-6 w-full rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                        >
+                            Okay, Got It
+                        </button>
+
+                    </div>
+
+                </div>
+            )}
+
+        </>
     );
 };
 

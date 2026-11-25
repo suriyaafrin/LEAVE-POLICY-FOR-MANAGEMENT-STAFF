@@ -8,10 +8,14 @@ import {
     AlertCircle,
     UserCheck,
     Clock,
-    Building2,
     ShieldCheck,
 } from "lucide-react";
 
+import { getHolidayForDate } from "../../Data/holidays.js";
+
+// ==========================================
+// CURRENT HR APPROVER
+// ==========================================
 
 const currentApprover = {
     name: "Suriya Afrin",
@@ -20,6 +24,9 @@ const currentApprover = {
     department: "Human Resources",
 };
 
+// ==========================================
+// EMPLOYEES
+// ==========================================
 
 const employees = [
     { id: 1, name: "Rahim Uddin", role: "Frontend Developer" },
@@ -32,7 +39,9 @@ const employees = [
     { id: 8, name: "Tasnim Rahman", role: "Content Writer" },
 ];
 
-
+// ==========================================
+// INITIAL LEAVE DATA
+// ==========================================
 
 const initialLeaves = [
     {
@@ -167,14 +176,20 @@ const initialLeaves = [
     },
 ];
 
-// Previously reviewed leaves get reviewer information.
-// Pending leaves do not have reviewer information yet.
+// ==========================================
+// PREPARED LEAVE DATA
+// ==========================================
+
 const preparedLeaves = initialLeaves.map((leave) => ({
     ...leave,
     reviewedBy:
         leave.status === "pending" ? null : currentApprover,
     reviewedAt: null,
 }));
+
+// ==========================================
+// STYLES & CONSTANTS
+// ==========================================
 
 const colors = [
     "bg-indigo-500",
@@ -187,8 +202,6 @@ const colors = [
     "bg-emerald-500",
 ];
 
-
-
 const statusStyles = {
     approved: "bg-green-50 text-green-700 border-green-300",
     pending: "bg-amber-50 text-amber-700 border-amber-300",
@@ -200,7 +213,9 @@ const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const EMPLOYEE_WIDTH = 150;
 const DAY_WIDTH = 30;
 
-
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
 
 const getInitials = (name) =>
     name
@@ -230,6 +245,9 @@ const formatReviewDate = (dateString) => {
     );
 };
 
+// ==========================================
+// HR LEAVE CALENDAR
+// ==========================================
 
 const HRLeaveCalendar = () => {
     const [currentDate, setCurrentDate] = useState(
@@ -254,7 +272,9 @@ const HRLeaveCalendar = () => {
         month: "long",
     });
 
-
+    // ==========================================
+    // VISIBLE LEAVES
+    // ==========================================
 
     const visibleLeaves = leaves.filter((leave) => {
         const start = new Date(`${leave.start}T00:00:00`);
@@ -266,7 +286,9 @@ const HRLeaveCalendar = () => {
         return start <= monthEnd && end >= monthStart;
     });
 
-
+    // ==========================================
+    // STATISTICS
+    // ==========================================
 
     const stats = {
         approved: visibleLeaves.filter(
@@ -282,13 +304,17 @@ const HRLeaveCalendar = () => {
         ).length,
     };
 
-
+    // ==========================================
+    // MONTH NAVIGATION
+    // ==========================================
 
     const changeMonth = (direction) => {
         setCurrentDate(new Date(year, month + direction, 1));
     };
 
-
+    // ==========================================
+    // LEAVE BAR POSITION
+    // ==========================================
 
     const getLeavePosition = (leave) => {
         const start = new Date(`${leave.start}T00:00:00`);
@@ -306,7 +332,9 @@ const HRLeaveCalendar = () => {
         };
     };
 
-
+    // ==========================================
+    // TOTAL LEAVE DAYS
+    // ==========================================
 
     const getTotalLeaveDays = (leave) => {
         const start = new Date(`${leave.start}T00:00:00`);
@@ -317,7 +345,9 @@ const HRLeaveCalendar = () => {
         );
     };
 
-
+    // ==========================================
+    // MODAL
+    // ==========================================
 
     const openLeaveModal = (leave) => {
         setSelectedLeave(leave);
@@ -331,7 +361,9 @@ const HRLeaveCalendar = () => {
         setRejectionError("");
     };
 
-
+    // ==========================================
+    // UPDATE LEAVE STATUS
+    // ==========================================
 
     const updateLeaveStatus = (
         leave,
@@ -344,30 +376,24 @@ const HRLeaveCalendar = () => {
 
         if (!confirmed) return;
 
-        // Current date
         const reviewDate = new Date().toISOString().slice(0, 10);
 
-        // Reviewer information
         const updatedLeave = {
             ...leave,
             status: newStatus,
 
-            // Who approved or rejected
             reviewedBy: {
                 ...currentApprover,
             },
 
-            // When the action happened
             reviewedAt: reviewDate,
 
-            // Rejection reason
             rejectionReason:
                 newStatus === "rejected"
                     ? rejectionReason.trim()
                     : "",
         };
 
-        // Update leave list
         setLeaves((prev) =>
             prev.map((item) =>
                 item.employeeId === leave.employeeId &&
@@ -378,14 +404,15 @@ const HRLeaveCalendar = () => {
             )
         );
 
-        // Update modal immediately
         setSelectedLeave(updatedLeave);
 
         setRejectionReasonInput("");
         setRejectionError("");
     };
 
-
+    // ==========================================
+    // APPROVE & REJECT
+    // ==========================================
 
     const handleApprove = (leave) => {
         updateLeaveStatus(leave, "approved");
@@ -406,7 +433,9 @@ const HRLeaveCalendar = () => {
         );
     };
 
-
+    // ==========================================
+    // SELECTED EMPLOYEE
+    // ==========================================
 
     const selectedEmployee = selectedLeave
         ? employees.find(
@@ -521,10 +550,30 @@ const HRLeaveCalendar = () => {
                                 const isToday =
                                     date.toDateString() === today.toDateString();
 
+                                const holiday = getHolidayForDate(
+                                    year,
+                                    month,
+                                    day
+                                );
+
+                                const isWeekend =
+                                    date.getDay() === 5 ||
+                                    date.getDay() === 6;
+
                                 return (
                                     <div
                                         key={day}
-                                        className="flex flex-col items-center justify-center border-l border-gray-100 py-1.5 text-[9px] text-gray-500"
+                                        title={
+                                            holiday?.name ||
+                                            (isWeekend ? "Weekend" : "")
+                                        }
+                                        className={`flex flex-col items-center justify-center border-l py-1.5 text-[9px] ${
+                                            holiday
+                                                ? "border-red-100 bg-red-50 text-red-600"
+                                                : isWeekend
+                                                    ? "border-gray-100 bg-gray-100 text-gray-500"
+                                                    : "border-gray-100 bg-gray-50 text-gray-500"
+                                        }`}
                                     >
                                         <span>
                                             {weekdays[date.getDay()]}
@@ -534,11 +583,19 @@ const HRLeaveCalendar = () => {
                                             className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
                                                 isToday
                                                     ? "bg-indigo-600 text-white"
-                                                    : "text-gray-800"
+                                                    : holiday
+                                                        ? "text-red-700"
+                                                        : "text-gray-800"
                                             }`}
                                         >
                                             {day}
                                         </span>
+
+                                        {holiday && (
+                                            <span className="mt-0.5 text-[7px] font-bold text-red-600">
+                                                Holiday
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -588,19 +645,34 @@ const HRLeaveCalendar = () => {
 
                                             const day = index + 1;
 
-                                            const weekday = new Date(
+                                            const date = new Date(
                                                 year,
                                                 month,
                                                 day
-                                            ).getDay();
+                                            );
+
+                                            const weekday = date.getDay();
+
+                                            const holiday = getHolidayForDate(
+                                                year,
+                                                month,
+                                                day
+                                            );
+
+                                            const isWeekend =
+                                                weekday === 5 ||
+                                                weekday === 6;
 
                                             return (
                                                 <div
                                                     key={day}
-                                                    className={`border-l border-gray-100 ${
-                                                        weekday === 5 || weekday === 6
-                                                            ? "bg-gray-50"
-                                                            : "bg-white"
+                                                    title={holiday?.name || ""}
+                                                    className={`border-l ${
+                                                        holiday
+                                                            ? "border-red-100 bg-red-50"
+                                                            : isWeekend
+                                                                ? "border-gray-100 bg-gray-50"
+                                                                : "border-gray-100 bg-white"
                                                     }`}
                                                 />
                                             );
@@ -661,13 +733,20 @@ const HRLeaveCalendar = () => {
                 </span>
 
                 <span>
+                    <i className="mr-1 inline-block h-2.5 w-2.5 rounded border border-red-200 bg-red-50" />
+                    Public Holiday
+                </span>
+
+                <span>
                     <i className="mr-1 inline-block h-2.5 w-2.5 rounded border border-gray-200 bg-gray-100" />
                     Weekend
                 </span>
 
             </div>
 
-
+            {/* ==========================================
+                LEAVE DETAILS MODAL
+            ========================================== */}
 
             {selectedLeave && (
 
@@ -852,8 +931,7 @@ const HRLeaveCalendar = () => {
 
                         </div>
 
-
-
+                        {/* REVIEWER INFORMATION */}
                         {selectedLeave.status !== "pending" &&
                             selectedLeave.reviewedBy && (
 
@@ -902,7 +980,6 @@ const HRLeaveCalendar = () => {
 
                                         <div className="mt-3 grid grid-cols-2 gap-3">
 
-                                            {/* DESIGNATION */}
                                             <div>
                                                 <p className="text-xs text-gray-500">
                                                     Designation
@@ -913,7 +990,6 @@ const HRLeaveCalendar = () => {
                                                 </p>
                                             </div>
 
-                                            {/* DEPARTMENT */}
                                             <div>
                                                 <p className="text-xs text-gray-500">
                                                     Department
@@ -966,8 +1042,7 @@ const HRLeaveCalendar = () => {
                                 </div>
                             )}
 
-
-
+                        {/* PENDING LEAVE ACTIONS */}
                         {selectedLeave.status === "pending" && (
 
                             <div className="mt-5">

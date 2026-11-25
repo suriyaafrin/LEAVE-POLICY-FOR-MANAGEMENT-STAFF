@@ -22,8 +22,11 @@ import {
 
 import WorkLeaveRatio from "./workLeaveRatio.jsx";
 import LeaveApplication from "./leaveApplication.jsx";
+import { getHolidayForDate } from "../../Data/holidays.js";
 
-
+// ==========================================
+// EMPLOYEE DATA
+// ==========================================
 
 const employees = [
     {
@@ -76,7 +79,9 @@ const employees = [
     },
 ];
 
-
+// ==========================================
+// EMPLOYEE PROFILE
+// ==========================================
 
 const employeeProfile = {
     name: "Rahim Uddin",
@@ -89,9 +94,14 @@ const employeeProfile = {
     phone: "+880 1712-345678",
     image: "https://i.pravatar.cc/150?img=12",
     status: "Active",
+
+    // Important: Joining date must be inside employeeProfile
+    joiningDate: "2025-01-15",
 };
 
-
+// ==========================================
+// INITIAL LEAVE DATA
+// ==========================================
 
 const initialLeaves = [
     {
@@ -202,6 +212,9 @@ const initialLeaves = [
     },
 ];
 
+// ==========================================
+// INITIAL LEAVE BALANCES
+// ==========================================
 
 const initialLeaveBalances = [
     {
@@ -260,7 +273,9 @@ const initialLeaveBalances = [
     },
 ];
 
-
+// ==========================================
+// STATUS STYLES
+// ==========================================
 
 const statusStyles = {
     approved: "bg-green-100 text-green-700 border-green-300",
@@ -268,7 +283,9 @@ const statusStyles = {
     rejected: "bg-red-100 text-red-700 border-red-300",
 };
 
-
+// ==========================================
+// APPROVAL TRACKING
+// ==========================================
 
 const getApprovalSteps = (leave) => {
     const steps = [
@@ -326,13 +343,14 @@ const getApprovalSteps = (leave) => {
     }));
 };
 
-
+// ==========================================
+// MAIN COMPONENT
+// ==========================================
 
 const EmployeeDash = () => {
     const [leaves, setLeaves] = useState(initialLeaves);
 
     const [selectedLeave, setSelectedLeave] = useState(null);
-
     const [selectedTracking, setSelectedTracking] = useState(null);
 
     const [currentDate, setCurrentDate] = useState(
@@ -341,163 +359,60 @@ const EmployeeDash = () => {
 
     const [leaveBalances] = useState(initialLeaveBalances);
 
-    const joiningDate = "2024-01-15";
-    // const joiningDate = "2026-06-15";
-    const monthlySalary = 30000;
+    // ==========================================
+    // JOINING DATE FIX
+    // ==========================================
 
+    // Get joining date directly from employeeProfile
+    const joiningDate = employeeProfile.joiningDate;
+
+    const monthlySalary = 30000;
 
     const employeeGender = employeeProfile.gender;
     const isMale = employeeGender.toLowerCase() === "male";
 
+    // Validate joining date before calculating service duration
+    const isValidJoiningDate =
+        Boolean(joiningDate) &&
+        !Number.isNaN(new Date(`${joiningDate}T00:00:00`).getTime());
 
+    const joining = isValidJoiningDate
+        ? new Date(`${joiningDate}T00:00:00`)
+        : null;
+
+    const today = new Date();
+
+    let yearsOfService = 0;
+    let monthsOfService = 0;
+
+    if (joining) {
+        yearsOfService =
+            today.getFullYear() - joining.getFullYear();
+
+        monthsOfService =
+            today.getMonth() - joining.getMonth();
+
+        if (today.getDate() < joining.getDate()) {
+            monthsOfService--;
+        }
+
+        if (monthsOfService < 0) {
+            yearsOfService--;
+            monthsOfService += 12;
+        }
+    }
+
+    // ==========================================
+    // LEAVE BALANCE CALCULATIONS
+    // ==========================================
 
     const untoldLeave = leaveBalances.find(
         (leave) => leave.shortName === "Untold"
     );
 
-    const unpaidLeaveDays = untoldLeave ? untoldLeave.used : 0;
-
-
-    const joining = new Date(`${joiningDate}T00:00:00`);
-    const today = new Date();
-
-    let yearsOfService =
-        today.getFullYear() - joining.getFullYear();
-
-    let monthsOfService =
-        today.getMonth() - joining.getMonth();
-
-    if (today.getDate() < joining.getDate()) {
-        monthsOfService--;
-    }
-
-    if (monthsOfService < 0) {
-        yearsOfService--;
-        monthsOfService += 12;
-    }
-
-
-
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    const monthName = currentDate.toLocaleString("en-US", {
-        month: "long",
-    });
-
-    const daysInMonth = new Date(
-        year,
-        month + 1,
-        0
-    ).getDate();
-
-    const days = Array.from(
-        { length: daysInMonth },
-        (_, index) => index + 1
-    );
-
-    const weekDays = [
-        "Sun",
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat",
-    ];
-
-
-
-    const changeMonth = (direction) => {
-        setCurrentDate(
-            new Date(year, month + direction, 1)
-        );
-    };
-
-
-
-    const getDate = (dateString) => {
-        const [y, m, d] = dateString.split("-").map(Number);
-
-        return new Date(y, m - 1, d);
-    };
-
-
-
-    const isToday = (day) => {
-        return (
-            today.getDate() === day &&
-            today.getMonth() === month &&
-            today.getFullYear() === year
-        );
-    };
-
-
-
-    const monthlyLeaves = useMemo(() => {
-        const monthStart = new Date(year, month, 1);
-        const monthEnd = new Date(year, month + 1, 0);
-
-        return leaves.filter((leave) => {
-            const start = getDate(leave.start);
-            const end = getDate(leave.end);
-
-            return start <= monthEnd && end >= monthStart;
-        });
-    }, [year, month, leaves]);
-
-
-
-    const stats = [
-        {
-            label: "Approved",
-            count: monthlyLeaves.filter(
-                (leave) => leave.status === "approved"
-            ).length,
-            color: "bg-green-500",
-        },
-        {
-            label: "Pending",
-            count: monthlyLeaves.filter(
-                (leave) => leave.status === "pending"
-            ).length,
-            color: "bg-amber-500",
-        },
-        {
-            label: "Rejected",
-            count: monthlyLeaves.filter(
-                (leave) => leave.status === "rejected"
-            ).length,
-            color: "bg-red-500",
-        },
-    ];
-
-
-
-    const getLeavePosition = (leave) => {
-        const monthStart = new Date(year, month, 1);
-        const monthEnd = new Date(year, month + 1, 0);
-
-        const startDate = getDate(leave.start);
-        const endDate = getDate(leave.end);
-
-        if (endDate < monthStart || startDate > monthEnd) {
-            return null;
-        }
-
-        const startDay =
-            startDate < monthStart ? 1 : startDate.getDate();
-
-        const endDay =
-            endDate > monthEnd ? daysInMonth : endDate.getDate();
-
-        return {
-            start: startDay,
-            span: endDay - startDay + 1,
-        };
-    };
-
-
+    const unpaidLeaveDays = untoldLeave
+        ? untoldLeave.used
+        : 0;
 
     const totalLeaveDays = leaveBalances.reduce(
         (total, leave) => total + leave.total,
@@ -527,8 +442,6 @@ const EmployeeDash = () => {
         0
     );
 
-
-
     const annualLeave = leaveBalances.find(
         (leave) => leave.shortName === "Annual"
     );
@@ -537,7 +450,9 @@ const EmployeeDash = () => {
         ? Math.max(0, annualLeave.total - annualLeave.used)
         : 0;
 
-
+    // ==========================================
+    // SALARY CALCULATION
+    // ==========================================
 
     const dailySalary = monthlySalary / 30;
 
@@ -556,7 +471,120 @@ const EmployeeDash = () => {
         })}`;
     };
 
+    // ==========================================
+    // CALENDAR DATA
+    // ==========================================
 
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const monthName = currentDate.toLocaleString("en-US", {
+        month: "long",
+    });
+
+    const daysInMonth = new Date(
+        year,
+        month + 1,
+        0
+    ).getDate();
+
+    const days = Array.from(
+        { length: daysInMonth },
+        (_, index) => index + 1
+    );
+
+    const weekDays = [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+    ];
+
+    const changeMonth = (direction) => {
+        setCurrentDate(
+            new Date(year, month + direction, 1)
+        );
+    };
+
+    const getDate = (dateString) => {
+        const [y, m, d] = dateString.split("-").map(Number);
+
+        return new Date(y, m - 1, d);
+    };
+
+    const isToday = (day) => {
+        return (
+            today.getDate() === day &&
+            today.getMonth() === month &&
+            today.getFullYear() === year
+        );
+    };
+
+    const monthlyLeaves = useMemo(() => {
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+
+        return leaves.filter((leave) => {
+            const start = getDate(leave.start);
+            const end = getDate(leave.end);
+
+            return start <= monthEnd && end >= monthStart;
+        });
+    }, [year, month, leaves]);
+
+    const stats = [
+        {
+            label: "Approved",
+            count: monthlyLeaves.filter(
+                (leave) => leave.status === "approved"
+            ).length,
+            color: "bg-green-500",
+        },
+        {
+            label: "Pending",
+            count: monthlyLeaves.filter(
+                (leave) => leave.status === "pending"
+            ).length,
+            color: "bg-amber-500",
+        },
+        {
+            label: "Rejected",
+            count: monthlyLeaves.filter(
+                (leave) => leave.status === "rejected"
+            ).length,
+            color: "bg-red-500",
+        },
+    ];
+
+    const getLeavePosition = (leave) => {
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+
+        const startDate = getDate(leave.start);
+        const endDate = getDate(leave.end);
+
+        if (endDate < monthStart || startDate > monthEnd) {
+            return null;
+        }
+
+        const startDay =
+            startDate < monthStart ? 1 : startDate.getDate();
+
+        const endDay =
+            endDate > monthEnd ? daysInMonth : endDate.getDate();
+
+        return {
+            start: startDay,
+            span: endDay - startDay + 1,
+        };
+    };
+
+    // ==========================================
+    // LEAVE APPLICATION HANDLERS
+    // ==========================================
 
     const handleLeaveClick = (leave) => {
         const isUntold = leave.shortName === "Untold";
@@ -574,22 +602,15 @@ const EmployeeDash = () => {
         });
     };
 
-
-
     const handleExtendedUnpaidClick = () => {
         setSelectedLeave({
             leaveType: "Unpaid Leave (Extended Leave)",
             shortName: "Unpaid Extended",
-
-            // Extended unpaid leave-এর জন্য balance limit থাকবে না
             remainingDays: null,
-
             isUntoldLeave: false,
             isExtendedUnpaidLeave: true,
         });
     };
-
-
 
     const handleLeaveSubmit = (data) => {
         const isExtendedUnpaid =
@@ -603,11 +624,9 @@ const EmployeeDash = () => {
 
             employeeId: 1,
 
-            // Employee information
             employeeName: employeeProfile.name,
             employeeIdText: employeeProfile.employeeId,
 
-            // Leave information
             start: data.startDate,
             end: data.endDate,
             days: Number(data.days) || 0,
@@ -620,15 +639,12 @@ const EmployeeDash = () => {
 
             leaveType: data.leaveType || selectedLeave?.leaveType,
 
-            // Application details
             reason: data.reason || "",
             attachment: data.attachment || null,
 
-            // Leave category
             isUnpaid: isExtendedUnpaid || isUntold,
             isExtendedUnpaidLeave: isExtendedUnpaid,
 
-            // Approval information
             status: "pending",
 
             rejectedAtStage: null,
@@ -637,18 +653,17 @@ const EmployeeDash = () => {
             rejectedDate: null,
         };
 
-        // Add the new application to the calendar data
         setLeaves((prev) => [
             ...prev,
             newLeave,
         ]);
 
         console.log("Leave request submitted:", newLeave);
-
-
     };
 
-
+    // ==========================================
+    // APPROVAL TRACKING HANDLER
+    // ==========================================
 
     const handleTrackingClick = (leave) => {
         setSelectedTracking(leave);
@@ -658,14 +673,14 @@ const EmployeeDash = () => {
         ? getApprovalSteps(selectedTracking)
         : [];
 
-
+    // ==========================================
+    // UI
+    // ==========================================
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
 
             <div className="mx-auto grid max-w-[1500px] grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-
-
 
                 <div className="min-w-0">
 
@@ -768,11 +783,13 @@ const EmployeeDash = () => {
                                         <div>
                                             <p className="text-xs text-gray-400">Joining Date</p>
                                             <p className="mt-1 text-sm font-semibold text-gray-700">
-                                                {joining.toLocaleDateString("en-GB", {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                })}
+                                                {joining
+                                                    ? joining.toLocaleDateString("en-GB", {
+                                                        day: "2-digit",
+                                                        month: "short",
+                                                        year: "numeric",
+                                                    })
+                                                    : "Not available"}
                                             </p>
                                         </div>
                                     </div>
@@ -874,11 +891,18 @@ const EmployeeDash = () => {
                                             date.getDay() === 5 ||
                                             date.getDay() === 6;
 
+                                        const holiday = getHolidayForDate(year, month, day);
+
                                         return (
                                             <div
                                                 key={day}
+                                                title={holiday?.name || (weekend ? "Weekend" : "")}
                                                 className={`flex flex-col items-center justify-center gap-1 border-l border-gray-200 py-2 ${
-                                                    weekend ? "bg-gray-100" : ""
+                                                    holiday
+                                                        ? "bg-red-50"
+                                                        : weekend
+                                                            ? "bg-gray-100"
+                                                            : ""
                                                 }`}
                                             >
 
@@ -895,6 +919,12 @@ const EmployeeDash = () => {
                                                 >
                                                     {day}
                                                 </span>
+
+                                                {holiday && (
+                                                    <span className="max-w-[42px] truncate text-[8px] font-semibold text-red-600">
+                                                        Holiday
+                                                    </span>
+                                                )}
 
                                             </div>
                                         );
@@ -919,8 +949,6 @@ const EmployeeDash = () => {
                                             }}
                                         >
 
-                                            {/* EMPLOYEE PROFILE */}
-
                                             <div className="sticky left-0 z-30 flex items-center gap-3 border-r border-gray-200 bg-white px-4 py-3">
 
                                                 <img
@@ -940,8 +968,6 @@ const EmployeeDash = () => {
                                                 </div>
                                             </div>
 
-                                            {/* DATE CELLS AND LEAVE BARS */}
-
                                             <div
                                                 className="relative grid min-h-[60px] grid-rows-1"
                                                 style={{
@@ -957,11 +983,18 @@ const EmployeeDash = () => {
                                                         date.getDay() === 5 ||
                                                         date.getDay() === 6;
 
+                                                    const holiday = getHolidayForDate(year, month, day);
+
                                                     return (
                                                         <div
                                                             key={day}
+                                                            title={holiday?.name || (weekend ? "Weekend" : "")}
                                                             className={`row-start-1 border-l border-gray-100 ${
-                                                                weekend ? "bg-gray-50" : ""
+                                                                holiday
+                                                                    ? "bg-red-50"
+                                                                    : weekend
+                                                                        ? "bg-gray-50"
+                                                                        : ""
                                                             }`}
                                                             style={{
                                                                 gridColumn: day,
@@ -969,8 +1002,6 @@ const EmployeeDash = () => {
                                                         />
                                                     );
                                                 })}
-
-                                                {/* CLICKABLE LEAVE BARS */}
 
                                                 {employeeLeaves.map((leave) => {
 
@@ -1026,6 +1057,11 @@ const EmployeeDash = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded border border-red-200 bg-red-100" />
+                            <span className="text-xs text-gray-500">Public Holiday</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
                             <span className="h-3 w-3 rounded border border-gray-300 bg-gray-100" />
                             <span className="text-xs text-gray-500">
                                 Weekend (Friday, Saturday)
@@ -1061,11 +1097,13 @@ const EmployeeDash = () => {
                         </p>
 
                         <p className="mt-1 text-xl font-bold text-gray-800">
-                            {joining.toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric",
-                            })}
+                            {joining
+                                ? joining.toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "long",
+                                    year: "numeric",
+                                })
+                                : "Not available"}
                         </p>
 
                         <div className="mt-4 rounded-lg bg-blue-50 p-3">
@@ -1075,7 +1113,9 @@ const EmployeeDash = () => {
                             </p>
 
                             <p className="mt-1 text-lg font-bold text-blue-700">
-                                {yearsOfService} Years {monthsOfService} Months
+                                {joining
+                                    ? `${yearsOfService} Years ${monthsOfService} Months`
+                                    : "Not available"}
                             </p>
 
                         </div>
@@ -1090,8 +1130,6 @@ const EmployeeDash = () => {
                     />
 
                 </div>
-
-
 
                 <div className="min-w-0 space-y-5">
 
@@ -1117,15 +1155,12 @@ const EmployeeDash = () => {
 
                         </div>
 
-                        {/* TOTAL LEAVE SUMMARY */}
-
                         <div className="mb-5 grid grid-cols-3 gap-2">
 
                             <div className="rounded-lg bg-indigo-50 p-3">
                                 <p className="text-xl font-bold text-indigo-600">
                                     {totalLeaveDays}
                                 </p>
-
                                 <p className="text-[10px] text-gray-500">
                                     Total Days
                                 </p>
@@ -1135,7 +1170,6 @@ const EmployeeDash = () => {
                                 <p className="text-xl font-bold text-amber-600">
                                     {totalUsedDays}
                                 </p>
-
                                 <p className="text-[10px] text-gray-500">
                                     Used Days
                                 </p>
@@ -1145,7 +1179,6 @@ const EmployeeDash = () => {
                                 <p className="text-xl font-bold text-green-600">
                                     {totalRemainingDays}
                                 </p>
-
                                 <p className="text-[10px] text-gray-500">
                                     Remaining
                                 </p>
@@ -1153,18 +1186,13 @@ const EmployeeDash = () => {
 
                         </div>
 
-                        {/* LEAVE TYPE GRAPH */}
-
                         <div className="mb-3">
-
                             <h3 className="text-sm font-semibold text-gray-800">
                                 Remaining Leave
                             </h3>
-
                             <p className="mt-1 text-xs text-gray-500">
                                 Click a leave type to apply
                             </p>
-
                         </div>
 
                         <div className="space-y-4">
@@ -1239,7 +1267,6 @@ const EmployeeDash = () => {
                                         </div>
 
                                         <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-
                                             <div
                                                 className={`h-full rounded-full transition-all ${
                                                     isUntold
@@ -1252,7 +1279,6 @@ const EmployeeDash = () => {
                                                     width: `${percentage}%`,
                                                 }}
                                             />
-
                                         </div>
 
                                         <p
@@ -1277,8 +1303,6 @@ const EmployeeDash = () => {
                                 );
                             })}
 
-
-
                             <button
                                 type="button"
                                 onClick={handleExtendedUnpaidClick}
@@ -1286,7 +1310,6 @@ const EmployeeDash = () => {
                             >
 
                                 <div className="mb-2 flex items-center justify-between gap-2">
-
                                     <span className="text-xs font-semibold text-orange-800">
                                         Unpaid Leave (Extended)
                                     </span>
@@ -1294,7 +1317,6 @@ const EmployeeDash = () => {
                                     <span className="whitespace-nowrap rounded-full bg-orange-100 px-2 py-1 text-xs font-bold text-orange-700">
                                         No Balance Limit
                                     </span>
-
                                 </div>
 
                                 <div className="h-2 w-full overflow-hidden rounded-full bg-orange-100">
@@ -1329,7 +1351,6 @@ const EmployeeDash = () => {
                                 <h2 className="text-lg font-bold text-gray-800">
                                     Salary Adjustment
                                 </h2>
-
                                 <p className="text-xs text-gray-500">
                                     Leave balance and salary calculation
                                 </p>
@@ -1337,10 +1358,7 @@ const EmployeeDash = () => {
 
                         </div>
 
-                        {/* MONTHLY SALARY */}
-
                         <div className="mb-4 rounded-lg bg-gray-50 p-3">
-
                             <p className="text-xs text-gray-500">
                                 Monthly Salary
                             </p>
@@ -1352,7 +1370,6 @@ const EmployeeDash = () => {
                             <p className="mt-1 text-[10px] text-gray-400">
                                 Daily Salary: {formatMoney(dailySalary)}
                             </p>
-
                         </div>
 
                         {/* ANNUAL LEAVE BENEFIT */}
@@ -1363,7 +1380,6 @@ const EmployeeDash = () => {
 
                                 <div className="flex items-center gap-2">
                                     <TrendingUp size={17} className="text-green-600" />
-
                                     <p className="text-sm font-semibold text-green-800">
                                         Annual Leave Balance
                                     </p>
@@ -1397,7 +1413,6 @@ const EmployeeDash = () => {
 
                                 <div className="flex items-center gap-2">
                                     <TrendingDown size={17} className="text-red-600" />
-
                                     <p className="text-sm font-semibold text-red-800">
                                         Unpaid Leave
                                     </p>
@@ -1474,7 +1489,9 @@ const EmployeeDash = () => {
                 </div>
             </div>
 
-
+            {/* ==========================================
+                LEAVE APPLICATION MODAL
+            ========================================== */}
 
             {selectedLeave && (
                 <LeaveApplication
@@ -1487,13 +1504,18 @@ const EmployeeDash = () => {
                     gender={employeeProfile.gender}
                     department={employeeProfile.department}
                     email={employeeProfile.email}
-                    joiningDate={employeeProfile.joiningDate}
+
+                    // Fixed: pass the actual joining date
+                    joiningDate={joiningDate}
+
                     onSubmit={handleLeaveSubmit}
                     onClose={() => setSelectedLeave(null)}
                 />
             )}
 
-
+            {/* ==========================================
+                LEAVE APPROVAL TRACKING MODAL
+            ========================================== */}
 
             {selectedTracking && (
 
@@ -1641,8 +1663,6 @@ const EmployeeDash = () => {
                                                 className="relative flex gap-4"
                                             >
 
-                                                {/* TIMELINE */}
-
                                                 <div className="flex flex-col items-center">
 
                                                     <div
@@ -1688,8 +1708,6 @@ const EmployeeDash = () => {
                                                     )}
 
                                                 </div>
-
-                                                {/* STEP DETAILS */}
 
                                                 <div className="min-w-0 flex-1 pb-6">
 
