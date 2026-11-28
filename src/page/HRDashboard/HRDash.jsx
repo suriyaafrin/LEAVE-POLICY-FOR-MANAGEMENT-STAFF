@@ -7,6 +7,9 @@ import HRMyLeaveBalance from "./myLeave.jsx";
 import HRJoiningDate from "./joinDate.jsx";
 import HRLeaveBalanceList from "./leaveBalance.jsx";
 import PresentEmployee from "./presentEmployee.jsx";
+import LeaveDetails from "./leaveDetails.jsx";
+import DailyAttendence from "./dailyAttendence.jsx";
+import BestPerformer from "./bestPerformer.jsx";
 
 const HrDash = () => {
     return (
@@ -17,26 +20,29 @@ const HrDash = () => {
                 {/* LEFT SIDE */}
                 <div className="min-w-0 space-y-5">
 
-                    {/* HR PROFILE */}
+                    {/* HR Profile */}
                     <div className="min-w-0">
                         <HRProfile />
                     </div>
 
-                    {/* HR LEAVE CALENDAR */}
+                    {/* HR Leave Calendar */}
                     <div className="min-w-0">
                         <HRLeaveCalendar />
                     </div>
 
-                    {/* HR JOINING DATE */}
-                    <div className="">
-                        {/*<HRJoiningDate />*/}
+                    {/* Leave Balance List */}
+                    <div className="min-w-0">
                         <HRLeaveBalanceList />
                     </div>
 
-                    {/* HR LEAVE BALANCE LIST */}
+                    {/* Joining Date */}
                     <div className="min-w-0">
-                        {/*<HRLeaveBalanceList />*/}
                         <HRJoiningDate />
+                    </div>
+
+                    {/* Daily Attendance */}
+                    <div className="min-w-0">
+                        <DailyAttendence />
                     </div>
 
                 </div>
@@ -44,9 +50,17 @@ const HrDash = () => {
                 {/* RIGHT SIDE */}
                 <div className="min-w-0 space-y-5">
 
-                    {/* HR MY LEAVE BALANCE */}
+                    {/* My Leave Balance */}
                     <HRMyLeaveBalance />
-                    <PresentEmployee/>
+
+                    {/* Present Employee */}
+                    <PresentEmployee />
+
+                    {/* Today's Leave Details */}
+                    <LeaveDetails />
+
+                    {/* Best Performer */}
+                    <BestPerformer />
 
                 </div>
 

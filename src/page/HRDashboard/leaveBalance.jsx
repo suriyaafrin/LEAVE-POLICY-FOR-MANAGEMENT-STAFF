@@ -8,6 +8,7 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     X,
+    FileText
 } from "lucide-react";
 
 const initialData = [
@@ -94,7 +95,7 @@ const HRLeaveBalanceList = () => {
         (emp) => emp.status === "Approved"
     ).length;
 
-    // Add new employee calculation
+    // Add new employee
     const handleAddEmployee = (e) => {
         e.preventDefault();
 
@@ -148,7 +149,12 @@ const HRLeaveBalanceList = () => {
 
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-3">
+
                 <div className="flex min-w-0 items-center gap-2">
+
+
+
+                    {/* Wallet Icon */}
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
                         <Wallet size={21} className="text-indigo-600" />
                     </div>
@@ -157,12 +163,14 @@ const HRLeaveBalanceList = () => {
                         <h2 className="text-lg font-bold text-gray-800">
                             Leave Balance & Salary Adjustment
                         </h2>
+
                         <p className="text-xs text-gray-500">
                             Employee leave encashment and salary deduction
                         </p>
                     </div>
                 </div>
 
+                {/* Add Calculation Button */}
                 <button
                     type="button"
                     onClick={() => setShowForm(!showForm)}
@@ -171,6 +179,7 @@ const HRLeaveBalanceList = () => {
                     {showForm ? <X size={17} /> : <Plus size={17} />}
                     {showForm ? "Close Form" : "Add Calculation"}
                 </button>
+
             </div>
 
             {/* Summary Cards */}
@@ -183,9 +192,11 @@ const HRLeaveBalanceList = () => {
                             <p className="text-xs font-medium text-gray-500">
                                 Total Encashment
                             </p>
+
                             <h3 className="mt-2 text-xl font-bold text-emerald-600">
                                 {money(totalEncashment)}
                             </h3>
+
                             <p className="mt-1 text-xs text-gray-400">
                                 Unused leave payment
                             </p>
@@ -204,9 +215,11 @@ const HRLeaveBalanceList = () => {
                             <p className="text-xs font-medium text-gray-500">
                                 Total Deduction
                             </p>
+
                             <h3 className="mt-2 text-xl font-bold text-red-500">
                                 {money(totalDeduction)}
                             </h3>
+
                             <p className="mt-1 text-xs text-gray-400">
                                 Unpaid leave deduction
                             </p>
@@ -253,6 +266,7 @@ const HRLeaveBalanceList = () => {
             {/* Add Employee Form */}
             {showForm && (
                 <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+
                     <h3 className="mb-4 text-base font-bold text-gray-800">
                         Add Leave Calculation
                     </h3>
@@ -369,12 +383,12 @@ const HRLeaveBalanceList = () => {
                     <h3 className="font-bold text-gray-800">
                         Employee Salary Adjustment
                     </h3>
+
                     <p className="mt-1 text-xs text-gray-500">
                         Review employee leave balance and approve adjustments
                     </p>
                 </div>
 
-                {/* No horizontal scroll */}
                 <div className="w-full min-w-0">
                     <table className="w-full table-fixed text-xs">
 
@@ -518,6 +532,7 @@ const HRLeaveBalanceList = () => {
                     Deduction = Daily salary × Unpaid leave days
                 </p>
             </div>
+
         </div>
     );
 };
